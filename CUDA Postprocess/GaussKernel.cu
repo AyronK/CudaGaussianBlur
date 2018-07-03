@@ -2,14 +2,11 @@
 #include<iostream>
 #include <stdlib.h>
 #include <stdio.h>
-#include "CudaKernel.h"
+#include "GaussKernel.h"
 
 using namespace std;
 
 #define CudaSafeCall( err ) __cudaSafeCall( err, __FILE__, __LINE__ )
-#define CudaCheckError()    __cudaCheckError( __FILE__, __LINE__ )
-#define checkCudaErrors(err) __checkCudaErrors (err, __FILE__, __LINE__)
-
 
 texture <float, 2, cudaReadModeElementType> tex1;
 
@@ -34,17 +31,6 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 	output[y*widthStep + x] = output_value / s;
 }
 
-
-inline void __checkCudaErrors(cudaError err, const char *file, const int line)
-{
-	if (cudaSuccess != err) {
-		fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n",
-			file, line, (int)err, cudaGetErrorString(err));
-		exit(-1);
-	}
-}
-
-//Host Code
 inline void __cudaSafeCall(cudaError err, const char *file, const int line)
 {
 #ifdef CUDA_ERROR_CHECK

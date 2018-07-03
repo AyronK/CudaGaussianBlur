@@ -84,10 +84,10 @@
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="CudaKernel.cu" />
+    <CudaCompile Include="GaussKernel.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CudaKernel.h" />
+    <ClInclude Include="GaussKernel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
