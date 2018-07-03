@@ -8,16 +8,12 @@ using namespace cv;
 
 /// Global Variables
 int DELAY_CAPTION = 1500;
-int DELAY_BLUR = 10;
+int DELAY_BLUR = 100;
 int MAX_KERNEL_LENGTH = 31;
 int SIGMA_X = 250;
 int SIGMA_Y = 250;
 
 char window_name[] = "window";
-
-/// Function headers
-void TwoPassGaussianBlur();
-int display_dst(int delay);
 
 /**
 * function main
@@ -56,7 +52,7 @@ int main(int argc, char** argv)
 	float *input = (float*)inputImage->imageData;
 
 
-	kernelGauss(input, output, image->width, image->height, inputImage->widthStep);
+	kernelGauss(input, output, image->width, image->height, inputImage->widthStep, 15);
 
 	cvScale(outputImage, outputImage, 1.0 / 255.0);
 
