@@ -58,20 +58,6 @@ inline void __cudaSafeCall(cudaError err, const char *file, const int line)
 
 	return;
 }
-inline void __cudaCheckError(const char *file, const int line)
-{
-#ifdef CUDA_ERROR_CHECK
-	cudaError err = cudaGetLastError();
-	if (cudaSuccess != err)
-	{
-		printf("cudaCheckError() failed at %s:%i : %s\n",
-			file, line, cudaGetErrorString(err));
-		exit(-1);
-	}
-#endif
-
-	return;
-}
 
 void kernelGauss(float* input, float* output, int width, int height, int widthStep, float sigma)
 {
@@ -79,8 +65,6 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 
 	CudaSafeCall(cudaMallocArray(&cuArray, &channelDesc, width, height));
 
-	//Never use 1D memory copy if host and device pointers have different widthStep.
-	// You don't know the width step of CUDA array, so its better to use cudaMemcpy2D...
 	cudaMemcpy2DToArray(cuArray, 0, 0, input, widthStep, width * sizeof(float), height, cudaMemcpyHostToDevice);
 
 	cudaBindTextureToArray(tex1, cuArray, channelDesc);
@@ -94,9 +78,7 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 
 	gauss << < gridsize, blocksize >> > (D_output_x, width, height, widthStep / sizeof(float), sigma);
 	cudaThreadSynchronize();
-	CudaCheckError();
 
-	//Don't forget to unbind the texture
 	cudaUnbindTexture(tex1);
 
 	CudaSafeCall(cudaMemcpy(output, D_output_x, height*widthStep, cudaMemcpyDeviceToHost));

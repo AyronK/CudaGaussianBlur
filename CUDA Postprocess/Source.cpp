@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 	
 	IplImage* image;
 
-	image = cvLoadImage(filename.c_str(), IMREAD_GRAYSCALE);
+	image = cvLoadImage(filename.c_str());
 	if (!image)
 	{
 		cout << "Could not open or find the image" << std::endl;
@@ -52,7 +52,8 @@ int main(int argc, char** argv)
 	float *input = (float*)inputImage->imageData;
 
 
-	kernelGauss(input, output, image->width, image->height, inputImage->widthStep, 15);
+	// multiply by 3 if in rbg
+	kernelGauss(input, output, image->width*3, image->height, inputImage->widthStep, 15);
 
 	cvScale(outputImage, outputImage, 1.0 / 255.0);
 
