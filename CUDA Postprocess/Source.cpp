@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 	float *input = (float*)inputImage->imageData;
 
 
-	kernalGauss(input, output, image->width, image->height, inputImage->widthStep);
+	kernelGauss(input, output, image->width, image->height, inputImage->widthStep);
 
 	cvScale(outputImage, outputImage, 1.0 / 255.0);
 

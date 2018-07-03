@@ -72,7 +72,7 @@ inline void __cudaCheckError( const char *file, const int line )
     return;
 }
 
-void kernelcall(float* input,float* output,int width,int height,int widthStep)
+void kernelGauss(float* input,float* output,int width,int height,int widthStep)
 {
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
 
