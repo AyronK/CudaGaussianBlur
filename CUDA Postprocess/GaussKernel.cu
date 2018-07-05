@@ -27,24 +27,6 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 		matrix = m3;
 	else
 		matrix = m5;
-	//for (int i = 1; i < matrixSize; i++)
-	//{
-	//	if (i <= matrixSize / 2)
-	//		matrix[i] = matrix[i - 1] * 2;
-	//	else
-	//		matrix[i] = matrix[i - 1] / 2;
-	//}
-
-	//for (int i = 1; i < matrixSize; i++) {
-	//	for (int j = 0; j < matrixSize; j++) {
-	//		if (i <= matrixSize / 2) {
-	//			matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] * 2;
-	//		}
-	//		else {
-	//			matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] / 2;
-	//		}
-	//	}
-	//}
 	int s = 0;
 
 	for (int i = 0; i < matrixSize*matrixSize; i++)
@@ -58,20 +40,32 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 
 	float outputValue = 0;
 
-	for (int i = 0; i < matrixSize; i++) {
+	if (direction == VERTICAL) {
+		outputValue = 0.27901 * tex2D(tex1, x - sigma,y)
+					+ 0.44198 * tex2D(tex1, x, y);
+					+ 0.27901 *  tex2D(tex1, x + sigma, y);
+	}
+	else if (direction == HORIZONTAL) {
+			outputValue = 0.27901 * tex2D(tex1, x, y - sigma)
+				+ 0.44198 * tex2D(tex1, x, y);
+			+0.27901 *  tex2D(tex1, x, y + sigma);
+		}
+
+	/*for (int i = 0; i < matrixSize; i++) {
 		for (int j = 0; j < matrixSize; j++) {
 			int x_offset = i, y_offset = j;
 			x_offset -= matrixSize / 2;
 			y_offset -= matrixSize / 2;
 			outputValue += matrix[i*matrixSize + j] * tex2D(tex1, x + x_offset * sigma, y + y_offset * sigma);
 		}
-	}
+	}*/
 
 	/*float outputValue = (matrix[0] * tex2D(tex1, x - sigma, y - sigma)) + (matrix[1] * tex2D(tex1, x, y - sigma)) + (matrix[2] * tex2D(tex1, x + sigma, y - sigma))
 			+ (matrix[3] * tex2D(tex1, x - sigma, y)) + (matrix[4] * tex2D(tex1, x, y)) + (matrix[5] * tex2D(tex1, x + sigma, y))
 			+ (matrix[6] * tex2D(tex1, x - sigma, y + sigma)) + (matrix[7] * tex2D(tex1, x, y + sigma)) + (matrix[8] * tex2D(tex1, x + sigma, y + sigma));
 		*/
-	output[y*widthStep + x] = outputValue / s;
+	//output[y*widthStep + x] = outputValue / s;
+	output[y*widthStep + x] = outputValue*1.5;
 }
 
 inline void __cudaSafeCall(cudaError err, const char *file, const int line)
