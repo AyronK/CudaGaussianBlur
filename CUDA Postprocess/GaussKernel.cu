@@ -22,7 +22,7 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 
 	int m3[] = { 1,2,1 };
 	int m5[] = {1,4,6,4,1};
-	int m7[] = { 1,13,59,97,59,13,1};
+	int m7[] = { 2,22,97,159,97,22,2};
 	if (matrixSize == 3)
 		matrix = m3;
 	else if (matrixSize == 5)
@@ -45,11 +45,8 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 	if (direction == VERTICAL) {
 		for (int j = 0; j < matrixSize; j++) {
 			int x_offset = j - matrixSize / 2;
-			outputValue += matrix[j] * tex2D(tex1, x + x_offset * sigma, y);
+			outputValue += matrix[j] * tex2D(tex1, x + x_offset * sigma * 3, y);
 		}
-		/*outputValue = 0.27901 * tex2D(tex1, x - sigma,y)
-					+ 0.44198 * tex2D(tex1, x, y);
-					+ 0.27901 *  tex2D(tex1, x + sigma, y);*/
 	}
 	else if (direction == HORIZONTAL) {
 		for (int j = 0; j < matrixSize; j++) {
@@ -58,20 +55,6 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 		}
 		}
 
-	/*for (int i = 0; i < matrixSize; i++) {
-		for (int j = 0; j < matrixSize; j++) {
-			int x_offset = i, y_offset = j;
-			x_offset -= matrixSize / 2;
-			y_offset -= matrixSize / 2;
-			outputValue += matrix[i*matrixSize + j] * tex2D(tex1, x + x_offset * sigma, y + y_offset * sigma);
-		}
-	}*/
-
-	/*float outputValue = (matrix[0] * tex2D(tex1, x - sigma, y - sigma)) + (matrix[1] * tex2D(tex1, x, y - sigma)) + (matrix[2] * tex2D(tex1, x + sigma, y - sigma))
-			+ (matrix[3] * tex2D(tex1, x - sigma, y)) + (matrix[4] * tex2D(tex1, x, y)) + (matrix[5] * tex2D(tex1, x + sigma, y))
-			+ (matrix[6] * tex2D(tex1, x - sigma, y + sigma)) + (matrix[7] * tex2D(tex1, x, y + sigma)) + (matrix[8] * tex2D(tex1, x + sigma, y + sigma));
-		*/
-	//output[y*widthStep + x] = outputValue / s;
 	output[y*widthStep + x] = outputValue/s;
 }
 
@@ -89,36 +72,9 @@ inline void __cudaSafeCall(cudaError err, const char *file, const int line)
 	return;
 }
 
-void kernelGauss(float* input, float* output, int width, int height, int widthStep, float sigma, int direction, int matrixSize)
+void kernelGauss(float* input, float* output, int width, int height, int widthStep, int direction, int matrixSize)
 {
 	int* matrix = (int*)malloc(sizeof(int)*matrixSize*matrixSize);
-	/*for (int i = 1; i < matrixSize; i++)
-	{
-		if (i <= matrixSize / 2)
-			matrix[i] = matrix[i - 1] * 2;
-		else
-			matrix[i] = matrix[i - 1] / 2;
-	}
-
-	for (int i = 1; i < matrixSize; i++) {
-		for (int j = 0; j < matrixSize; j++) {
-			if (i <= matrixSize / 2) {
-				matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] * 2;
-			}
-			else {
-				matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] / 2;
-			}
-		}
-	}
-
-	for (int i = 0; i < matrixSize; i++)
-	{
-		for (int j = 0; j < matrixSize; j++)
-		{
-			cout << matrix[i*matrixSize + j] << "\t";
-		}
-		cout << endl;
-	}*/
 
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
 
@@ -138,7 +94,7 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 	dim3 gridsize;
 	gridsize.x = (width + blocksize.x - 1) / blocksize.x;
 	gridsize.y = (height + blocksize.y - 1) / blocksize.y;
-	gauss << < gridsize, blocksize >> > (D_output_x, width, height, widthStep / sizeof(float), sigma, direction, matrixSize,D_matrix);
+	gauss << < gridsize, blocksize >> > (D_output_x, width, height, widthStep / sizeof(float), 10, direction, matrixSize,D_matrix);
 	cudaThreadSynchronize();
 
 	cudaUnbindTexture(tex1);

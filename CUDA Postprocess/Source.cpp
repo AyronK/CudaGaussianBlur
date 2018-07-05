@@ -32,9 +32,6 @@ int main(int argc, char** argv)
 	//std::cout << "Write height" << endl;
 	//std::cin >> height;
 
-	int matrixSize = 3;
-	std::cout << "Matrix size" << endl;
-	std::cin >> matrixSize;
 
 	namedWindow(window_name, WINDOW_NORMAL);
 	resizeWindow(window_name, std::stoi(width), std::stoi(height));
@@ -65,20 +62,25 @@ int main(int argc, char** argv)
 	float *output2 = (float*)outputImage2->imageData;
 	float *input = (float*)inputImage->imageData;
 
+	int matrixSize = 3;
 
-	// multiply by 3 if in rbg
-	kernelGauss(input, output, image->width*3, image->height, inputImage->widthStep, 75, 0, matrixSize);
-	kernelGauss(output, output2, image->width*3, image->height, inputImage->widthStep, 15, 1, matrixSize);
+	while (matrixSize != 0) {
+		std::cout << "Matrix size" << endl;
+		std::cin >> matrixSize;
 
-	cvScale(outputImage, outputImage, 1.0 / 255.0);
-	cvScale(outputImage2, outputImage2, 1.0 / 255.0);
+		// multiply by 3 if in rbg
+		kernelGauss(input, output, image->width * 3, image->height, inputImage->widthStep, 1, matrixSize);
+		kernelGauss(output, output2, image->width * 3, image->height, inputImage->widthStep, 0, matrixSize);
 
-	cvShowImage(window_name, image);
+		cvScale(outputImage, outputImage, 1.0 / 255.0);
+		cvScale(outputImage2, outputImage2, 1.0 / 255.0);
 
-	cvShowImage(window_name2, outputImage);
+		cvShowImage(window_name, image);
+		cvShowImage(window_name2, outputImage);
+		cvShowImage(window_name3, outputImage2);
 
-	cvShowImage(window_name3, outputImage2);
-	cvWaitKey(0);
+		cvWaitKey(0);
+	}
 
 	return 0;
 }
