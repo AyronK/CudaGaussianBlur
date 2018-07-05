@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "GaussKernel.h"
-
 using namespace std;
 
 #define CudaSafeCall( err ) __cudaSafeCall( err, __FILE__, __LINE__ )
@@ -19,14 +18,17 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 {	
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
-	matrix[0] = 1;
+
 
 	int m3[] = { 1,2,1 };
 	int m5[] = {1,4,6,4,1};
+	int m7[] = { 1,13,59,97,59,13,1};
 	if (matrixSize == 3)
 		matrix = m3;
-	else
+	else if (matrixSize == 5)
 		matrix = m5;
+	else
+		matrix = m7;
 	int s = 0;
 
 	for (int i = 0; i < matrixSize; i++)
@@ -90,8 +92,6 @@ inline void __cudaSafeCall(cudaError err, const char *file, const int line)
 void kernelGauss(float* input, float* output, int width, int height, int widthStep, float sigma, int direction, int matrixSize)
 {
 	int* matrix = (int*)malloc(sizeof(int)*matrixSize*matrixSize);
-	matrix[0] = 1;
-
 	/*for (int i = 1; i < matrixSize; i++)
 	{
 		if (i <= matrixSize / 2)
