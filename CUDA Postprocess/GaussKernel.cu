@@ -16,10 +16,10 @@ static cudaArray *cuArray = NULL;
 #define HORIZONTAL 1
 
 __global__ void gauss(float* output, int width, int height, int widthStep, float sigma, int direction, int matrixSize, int* matrix)
-{
-	//int* matrix(new int[matrixSize*matrixSize]);  //{ 1, 2, 1, 2, 4, 2, 1, 2, 1 };
-	//int matrix[9] = { 1, 2, 1, 2, 4, 2, 1, 2, 1 };
-	/*matrix[0] = 1;
+{	
+	int x = blockIdx.x * blockDim.x + threadIdx.x;
+	int y = blockIdx.y * blockDim.y + threadIdx.y;
+	matrix[0] = 1;
 
 	for (int i = 1; i < matrixSize; i++)
 	{
@@ -32,27 +32,13 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 	for (int i = 1; i < matrixSize; i++) {
 		for (int j = 0; j < matrixSize; j++) {
 			if (i <= matrixSize / 2) {
-				matrix[i*matrixSize + j] = matrix[((i-1)*matrixSize) + j] * 2;
+				matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] * 2;
 			}
 			else {
-				matrix[i*matrixSize + j] = matrix[((i-1)*matrixSize) + j] / 2;
+				matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] / 2;
 			}
 		}
 	}
-*/
-	int x = blockIdx.x * blockDim.x + threadIdx.x;
-	int y = blockIdx.y * blockDim.y + threadIdx.y;
-	/*if (direction == VERTICAL) {
-		matrix[3] = 0;
-		matrix[4] = 0;
-		matrix[5] = 0;
-	}
-	else {
-		matrix[1] = 0;
-		matrix[4] = 0;
-		matrix[7] = 0;
-	}*/
-
 	int s = 0;
 
 	for (int i = 0; i < matrixSize*matrixSize; i++)
@@ -64,12 +50,22 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 		return;
 	}
 
-	float outputValue = (matrix[0] * tex2D(tex1, x - sigma, y - sigma)) + (matrix[1] * tex2D(tex1, x, y - sigma)) + (matrix[2] * tex2D(tex1, x + sigma, y - sigma))
+	float outputValue = 0;
+
+	for (int i = 0; i < matrixSize; i++) {
+		for (int j = 0; j < matrixSize; j++) {
+			int x_offset = i, y_offset = j;
+			x_offset -= matrixSize / 2;
+			y_offset -= matrixSize / 2;
+			outputValue += matrix[i*matrixSize + j] * tex2D(tex1, x + x_offset * sigma, y + y_offset * sigma);
+		}
+	}
+
+	/*float outputValue = (matrix[0] * tex2D(tex1, x - sigma, y - sigma)) + (matrix[1] * tex2D(tex1, x, y - sigma)) + (matrix[2] * tex2D(tex1, x + sigma, y - sigma))
 			+ (matrix[3] * tex2D(tex1, x - sigma, y)) + (matrix[4] * tex2D(tex1, x, y)) + (matrix[5] * tex2D(tex1, x + sigma, y))
 			+ (matrix[6] * tex2D(tex1, x - sigma, y + sigma)) + (matrix[7] * tex2D(tex1, x, y + sigma)) + (matrix[8] * tex2D(tex1, x + sigma, y + sigma));
-		
-	output[y*widthStep + x] = outputValue / 16;
-	delete[] matrix;
+		*/
+	output[y*widthStep + x] = outputValue / s;
 }
 
 inline void __cudaSafeCall(cudaError err, const char *file, const int line)
@@ -91,7 +87,7 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 	int* matrix = (int*)malloc(sizeof(int)*matrixSize*matrixSize);
 	matrix[0] = 1;
 
-	for (int i = 1; i < matrixSize; i++)
+	/*for (int i = 1; i < matrixSize; i++)
 	{
 		if (i <= matrixSize / 2)
 			matrix[i] = matrix[i - 1] * 2;
@@ -117,7 +113,7 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 			cout << matrix[i*matrixSize + j] << "\t";
 		}
 		cout << endl;
-	}
+	}*/
 
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
 
@@ -130,8 +126,9 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 	float * D_output_x;
 	int *D_matrix;
 	CudaSafeCall(cudaMalloc(&D_output_x, widthStep*height));
-	cudaMallocManaged(&D_matrix, sizeof(matrix));
-	memcpy(D_matrix, matrix, matrixSize*matrixSize*sizeof(int));
+	CudaSafeCall(cudaMalloc(&D_matrix, matrixSize*matrixSize*sizeof(int)));
+	//cudaMallocManaged(&D_matrix, sizeof(matrix), cudaMemcpyHostToDevice);
+	//memcpy(D_matrix, matrix, matrixSize*matrixSize*sizeof(int));
 	dim3 blocksize(16, 16);
 	dim3 gridsize;
 	gridsize.x = (width + blocksize.x - 1) / blocksize.x;
@@ -144,7 +141,8 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 	CudaSafeCall(cudaMemcpy(output, D_output_x, height*widthStep, cudaMemcpyDeviceToHost));
 
 	cudaFree(D_output_x);
+	cudaFree(D_matrix);
 	cudaFree(matrix);
 	cudaFreeArray(cuArray);
-	//delete[] matrix;
+	delete[] matrix;
 }

@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 	//std::cout << "Write height" << endl;
 	//std::cin >> height;
 
-	int matrixSize = 3;
+	int matrixSize = 5;
 	//std::cout << "Matrix size" << endl;
 	//std::cin >> matrixSize;
 
