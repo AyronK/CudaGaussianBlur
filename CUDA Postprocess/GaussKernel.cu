@@ -21,15 +21,15 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
 	matrix[0] = 1;
 
-	int m3[] = { 1,2,1,2,4,2,1,2,1 };
-	int m5[] = {1,4,6,4,1,4,16,24,16,4,6,24,36,24,6,4,16,24,16,4,1,4,6,4,1};
+	int m3[] = { 1,2,1 };
+	int m5[] = {1,4,6,4,1};
 	if (matrixSize == 3)
 		matrix = m3;
 	else
 		matrix = m5;
 	int s = 0;
 
-	for (int i = 0; i < matrixSize*matrixSize; i++)
+	for (int i = 0; i < matrixSize; i++)
 	{
 		s += matrix[i];
 	}
@@ -41,14 +41,19 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 	float outputValue = 0;
 
 	if (direction == VERTICAL) {
-		outputValue = 0.27901 * tex2D(tex1, x - sigma,y)
+		for (int j = 0; j < matrixSize; j++) {
+			int x_offset = j - matrixSize / 2;
+			outputValue += matrix[j] * tex2D(tex1, x + x_offset * sigma, y);
+		}
+		/*outputValue = 0.27901 * tex2D(tex1, x - sigma,y)
 					+ 0.44198 * tex2D(tex1, x, y);
-					+ 0.27901 *  tex2D(tex1, x + sigma, y);
+					+ 0.27901 *  tex2D(tex1, x + sigma, y);*/
 	}
 	else if (direction == HORIZONTAL) {
-			outputValue = 0.27901 * tex2D(tex1, x, y - sigma)
-				+ 0.44198 * tex2D(tex1, x, y);
-			+0.27901 *  tex2D(tex1, x, y + sigma);
+		for (int j = 0; j < matrixSize; j++) {
+			int x_offset = j - matrixSize / 2;
+			outputValue += matrix[j] * tex2D(tex1, x , y + x_offset * sigma);
+		}
 		}
 
 	/*for (int i = 0; i < matrixSize; i++) {
@@ -65,7 +70,7 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 			+ (matrix[6] * tex2D(tex1, x - sigma, y + sigma)) + (matrix[7] * tex2D(tex1, x, y + sigma)) + (matrix[8] * tex2D(tex1, x + sigma, y + sigma));
 		*/
 	//output[y*widthStep + x] = outputValue / s;
-	output[y*widthStep + x] = outputValue*1.5;
+	output[y*widthStep + x] = outputValue/s;
 }
 
 inline void __cudaSafeCall(cudaError err, const char *file, const int line)
@@ -126,7 +131,7 @@ void kernelGauss(float* input, float* output, int width, int height, int widthSt
 	float * D_output_x;
 	int *D_matrix;
 	CudaSafeCall(cudaMalloc(&D_output_x, widthStep*height));
-	CudaSafeCall(cudaMalloc(&D_matrix, matrixSize*matrixSize*sizeof(int)));
+	CudaSafeCall(cudaMalloc(&D_matrix, matrixSize*sizeof(int)));
 	//cudaMallocManaged(&D_matrix, sizeof(matrix), cudaMemcpyHostToDevice);
 	//memcpy(D_matrix, matrix, matrixSize*matrixSize*sizeof(int));
 	dim3 blocksize(16, 16);
