@@ -20,15 +20,19 @@ char window_name[] = "window";
 */
 int main(int argc, char** argv)
 {
-	string filename;
-	std::cout << "Write filename" << endl;
-	std::cin >> filename;
-	string width;
-	std::cout << "Write width" << endl;
-	std::cin >> width;
-	string height;
-	std::cout << "Write height" << endl;
-	std::cin >> height;
+	string filename = "lena.jpg";
+	//std::cout << "Write filename" << endl;
+	//std::cin >> filename;
+	string width = "500";
+	//std::cout << "Write width" << endl;
+	//std::cin >> width;
+	string height= "500";
+	//std::cout << "Write height" << endl;
+	//std::cin >> height;
+
+	int matrixSize = 3;
+	//std::cout << "Matrix size" << endl;
+	//std::cin >> matrixSize;
 
 	namedWindow(window_name, WINDOW_NORMAL);
 	resizeWindow(window_name, std::stoi(width), std::stoi(height));
@@ -53,7 +57,8 @@ int main(int argc, char** argv)
 
 
 	// multiply by 3 if in rbg
-	kernelGauss(input, output, image->width*3, image->height, inputImage->widthStep, 15);
+	kernelGauss(input, output, image->width*3, image->height, inputImage->widthStep, 15, 1, matrixSize);
+	//kernelGauss(output, output, image->width * 3, image->height, inputImage->widthStep, 15, 0, matrixSize);
 
 	cvScale(outputImage, outputImage, 1.0 / 255.0);
 
