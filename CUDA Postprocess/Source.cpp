@@ -30,9 +30,9 @@ int main(int argc, char** argv)
 	//std::cout << "Write height" << endl;
 	//std::cin >> height;
 
-	int matrixSize = 5;
-	//std::cout << "Matrix size" << endl;
-	//std::cin >> matrixSize;
+	int matrixSize = 3;
+	std::cout << "Matrix size" << endl;
+	std::cin >> matrixSize;
 
 	namedWindow(window_name, WINDOW_NORMAL);
 	resizeWindow(window_name, std::stoi(width), std::stoi(height));

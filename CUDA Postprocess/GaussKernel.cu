@@ -21,24 +21,30 @@ __global__ void gauss(float* output, int width, int height, int widthStep, float
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
 	matrix[0] = 1;
 
-	for (int i = 1; i < matrixSize; i++)
-	{
-		if (i <= matrixSize / 2)
-			matrix[i] = matrix[i - 1] * 2;
-		else
-			matrix[i] = matrix[i - 1] / 2;
-	}
+	int m3[] = { 1,2,1,2,4,2,1,2,1 };
+	int m5[] = {1,4,6,4,1,4,16,24,16,4,6,24,36,24,6,4,16,24,16,4,1,4,6,4,1};
+	if (matrixSize == 3)
+		matrix = m3;
+	else
+		matrix = m5;
+	//for (int i = 1; i < matrixSize; i++)
+	//{
+	//	if (i <= matrixSize / 2)
+	//		matrix[i] = matrix[i - 1] * 2;
+	//	else
+	//		matrix[i] = matrix[i - 1] / 2;
+	//}
 
-	for (int i = 1; i < matrixSize; i++) {
-		for (int j = 0; j < matrixSize; j++) {
-			if (i <= matrixSize / 2) {
-				matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] * 2;
-			}
-			else {
-				matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] / 2;
-			}
-		}
-	}
+	//for (int i = 1; i < matrixSize; i++) {
+	//	for (int j = 0; j < matrixSize; j++) {
+	//		if (i <= matrixSize / 2) {
+	//			matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] * 2;
+	//		}
+	//		else {
+	//			matrix[i*matrixSize + j] = matrix[((i - 1)*matrixSize) + j] / 2;
+	//		}
+	//	}
+	//}
 	int s = 0;
 
 	for (int i = 0; i < matrixSize*matrixSize; i++)
